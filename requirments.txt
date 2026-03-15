@@ -3,3 +3,4 @@ joblib
 numpy
 pandas
 seaborn
+scikit-learn
