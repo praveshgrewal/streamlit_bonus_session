@@ -16,7 +16,7 @@ def add_features(X: pd.DataFrame) -> pd.DataFrame:
 
 
 st.set_page_config(
-    page_title="Titanic Survival Studio",
+    page_title="Titanic Survival",
     page_icon="T",
     layout="wide",
 )
@@ -183,10 +183,6 @@ with st.container():
             "parch": 0,
             "fare": 8.0,
             "embarked": "S",
-            "tclass": "Third",
-            "deck": None,
-            "embark_town": "Southampton",
-            "alone": True,
         },
         "First-class wealthy adult": {
             "pclass": 1,
@@ -196,10 +192,6 @@ with st.container():
             "parch": 0,
             "fare": 120.0,
             "embarked": "C",
-            "tclass": "First",
-            "deck": "B",
-            "embark_town": "Cherbourg",
-            "alone": True,
         },
         "Child traveling with family": {
             "pclass": 2,
@@ -209,10 +201,6 @@ with st.container():
             "parch": 1,
             "fare": 18.0,
             "embarked": "S",
-            "tclass": "Second",
-            "deck": None,
-            "embark_town": "Southampton",
-            "alone": False,
         },
     }
 
@@ -277,26 +265,12 @@ with st.container():
                 "embarked",
                 "S",
             )
-            tclass = selectbox_with_state(
-                "Class",
-                ["First", "Second", "Third"],
-                "tclass",
-                "Third",
-            )
-            deck = selectbox_with_state(
-                "Deck",
-                ["A", "B", "C", "D", "E", "F", "G", "Unknown"],
-                "deck",
-                "Unknown",
-            )
-            embark_town = selectbox_with_state(
-                "Embark Town",
-                ["Southampton", "Cherbourg", "Queenstown", "Unknown"],
-                "embark_town",
-                "Southampton",
-            )
-
-        alone = st.checkbox("Traveling Alone", value=bool(st.session_state.get("alone", True)), key="alone")
+        st.markdown(
+            "<div class='note' style='margin-top: 0.6rem;'>"
+            "Inputs are limited to the seven core features used for prediction."
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -304,9 +278,9 @@ with st.container():
         st.markdown("<div class='card-title'>Profile Snapshot</div>", unsafe_allow_html=True)
         st.markdown(
             f"""
-            <span class="pill">Class: {tclass}</span>
+            <span class="pill">Ticket Class: {pclass}</span>
             <span class="pill">Embarked: {embarked}</span>
-            <span class="pill">Deck: {deck}</span>
+            <span class="pill">Fare: {fare:.1f}</span>
             """,
             unsafe_allow_html=True,
         )
@@ -326,13 +300,14 @@ with st.container():
                     "parch": parch,
                     "fare": fare,
                     "embarked": None if embarked == "Unknown" else embarked,
-                    "class": tclass,
-                    "deck": None if deck == "Unknown" else deck,
-                    "embark_town": None if embark_town == "Unknown" else embark_town,
-                    "alone": alone,
                 }
             ]
         )
+        # Keep model-compatible columns even if they are not shown in the UI.
+        input_df["class"] = None
+        input_df["deck"] = None
+        input_df["embark_town"] = None
+        input_df["alone"] = None
 
         pred = model.predict(input_df)[0]
         proba = model.predict_proba(input_df)[0][1]
@@ -352,6 +327,17 @@ with st.container():
             "<div class='note' style='margin-top: 0.8rem;'>This is a demo model trained on the Seaborn Titanic dataset. Results are probabilistic, not deterministic.</div>",
             unsafe_allow_html=True,
         )
+
+        st.markdown("<div class='card' style='margin-top: 1rem;'>", unsafe_allow_html=True)
+        st.markdown("<div class='card-title'>Probability Breakdown</div>", unsafe_allow_html=True)
+        chart_df = pd.DataFrame(
+            {
+                "Outcome": ["Survived", "Not Survived"],
+                "Probability": [float(proba), float(1 - proba)],
+            }
+        )
+        st.bar_chart(chart_df, x="Outcome", y="Probability", use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
         with st.expander("Show Input Data"):
             st.dataframe(input_df, use_container_width=True)
