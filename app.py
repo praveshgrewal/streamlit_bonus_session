@@ -16,7 +16,7 @@ def add_features(X: pd.DataFrame) -> pd.DataFrame:
 
 
 st.set_page_config(
-    page_title="Titanic Survival",
+    page_title="Titanic Survival Project",
     page_icon="T",
     layout="wide",
 )
