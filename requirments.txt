@@ -4,4 +4,4 @@ numpy
 pandas
 seaborn
 scikit-learn
-python_version<3.13
+
